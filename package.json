@@ -4,6 +4,24 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    {
+  "name": "meu-projeto",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite",                  // Comando para iniciar o ambiente de desenvolvimento
+    "build": "vite build",          // Comando para compilar o projeto para produção
+    "start": "npm run build && npm run serve",  // Comando para rodar o build e iniciar o servidor
+    "test": "jest"                  // Comando para rodar os testes usando o Jest
+  },
+  "dependencies": {
+    "vite": "^4.0.0",
+    "react": "^18.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0"
+  }
+}
+
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
