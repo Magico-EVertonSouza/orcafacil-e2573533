@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,23 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Cores personalizadas para o OrçaFácil
+				'orcafacil': {
+					'blue': '#33C3F0',
+					'light-blue': '#D3E4FD',
+					'gray': '#F6F6F7',
+					'light-gray': '#F1F1F1',
+					'dark-gray': '#8E9196',
+				},
+				'service': {
+					'reboco': '#F2FCE2',
+					'piso': '#FEF7CD',
+					'pladur': '#FEC6A1',
+					'alvenaria': '#E5DEFF',
+					'capoto': '#FFDEE2',
+					'concreto': '#FDE1D3',
+					'pintura': '#D3E4FD',
 				}
 			},
 			borderRadius: {
