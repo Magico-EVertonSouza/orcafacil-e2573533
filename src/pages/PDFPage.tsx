@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Layout from "@/components/Layout";
 import { ServiceCalculation } from "@/types";
-import PDFViewerContainer from "@/components/PDFDocument";
+import PDFViewerContainer from "@/components/pdf/PDFDocument";
 import { ArrowLeft } from "lucide-react";
 
 const PDFPage = () => {
