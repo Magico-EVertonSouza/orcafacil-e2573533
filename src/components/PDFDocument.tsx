@@ -1,4 +1,3 @@
-
 import { Document, Page, Text, View, StyleSheet, PDFViewer } from '@react-pdf/renderer';
 import { ServiceCalculation } from '@/types';
 import { getServiceInfo } from '@/utils/serviceData';
@@ -45,7 +44,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   table: {
-    display: 'table',
     width: '100%',
     marginBottom: 10,
     borderStyle: 'solid',

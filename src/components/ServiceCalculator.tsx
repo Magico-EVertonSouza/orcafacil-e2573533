@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { ServiceType } from "@/types";
 import { getServiceInfo } from "@/utils/serviceData";
 import { calculateArea, calculateMaterials, calculateTotalPrice, formatNumber } from "@/utils/calculationUtils";
+import { cn } from "@/lib/utils";
 
 interface ServiceCalculatorProps {
   serviceType: ServiceType;
