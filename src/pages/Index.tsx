@@ -19,9 +19,9 @@ export const calculateMaterials = (serviceType: ServiceType, area: number): Mate
     // Reboco de parede
     case 'reboco':
       return [
-        { name: 'Areia', quantity: area * 0.005, unit: 'm³', pricePerUnit: 40 },
-        { name: 'Cal', quantity: area * 0.002, unit: 'kg', pricePerUnit: 0.5 },
-        { name: 'Cimento', quantity: area * 0.003, unit: 'kg', pricePerUnit: 0.6 },
+        { name: 'Areia', quantity: area * 0.015, unit: 'm³', pricePerUnit: 40 },
+        { name: 'Cal', quantity: area * 1.5, unit: 'kg', pricePerUnit: 0.5 },
+        { name: 'Cimento', quantity: area * 2, unit: 'kg', pricePerUnit: 0.6 },
         { name: 'Carros de Mão (Areia)', quantity: Math.ceil(area * 0.005 * 12), unit: 'und', pricePerUnit: 0 },
       ];
 
