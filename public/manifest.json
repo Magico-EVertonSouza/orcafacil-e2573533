@@ -2,7 +2,7 @@
 {
   "name": "OrçaFácil",
   "short_name": "OrçaFácil",
-  "description": "Você mede,o OrçaFácil traduz.Com medidas simples e poucos cliques,qualquer pessoa entende o que está sendo orcçado-sem complicação,sem linguagem técnica.",
+  "description": "Ferramenta online para cálculo de materiais e orçamentos para construção civil",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
