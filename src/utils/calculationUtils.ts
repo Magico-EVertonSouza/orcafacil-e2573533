@@ -1,18 +1,55 @@
 
-import { Material, ServiceCalculation, ServiceType } from "@/types";
+import { Material, ServiceType, Region, Room, Wall } from "@/types";
+import { v4 as uuidv4 } from 'uuid';
 
-// Funções para cálculo de materiais
-export const calculateArea = (width: number, height: number): number => {
+// Funções para cálculo de paredes e áreas
+export const calculateWallArea = (width: number, height: number): number => {
   return width * height;
 };
 
-export const calculateMaterials = (serviceType: ServiceType, area: number): Material[] => {
+export const calculateRoomTotalArea = (walls: Wall[]): number => {
+  return walls.reduce((total, wall) => total + wall.area, 0);
+};
+
+export const createWall = (width: number, height: number): Wall => {
+  const area = calculateWallArea(width, height);
+  return {
+    id: uuidv4(),
+    width,
+    height,
+    area
+  };
+};
+
+export const createRoom = (name: string, walls: Wall[]): Room => {
+  const totalArea = calculateRoomTotalArea(walls);
+  return {
+    id: uuidv4(),
+    name,
+    walls,
+    totalArea
+  };
+};
+
+// Função para calcular materiais com base no tipo de serviço, área total e região
+export const calculateMaterials = (serviceType: ServiceType, totalArea: number, region: Region): Material[] => {
+  const materials = getBaseMaterials(serviceType, totalArea);
+  
+  // Aplicar o multiplicador de preço da região
+  return materials.map(material => ({
+    ...material,
+    pricePerUnit: material.pricePerUnit * region.priceMultiplier
+  }));
+};
+
+// Função para obter os materiais base sem ajuste regional
+const getBaseMaterials = (serviceType: ServiceType, area: number): Material[] => {
   switch (serviceType) {
     case 'reboco':
       return [
-        { name: 'Areia', quantity: area * 0.005, unit: 'm³', pricePerUnit: 40 },
-        { name: 'Cal', quantity: area * 0.002, unit: 'kg', pricePerUnit: 0.5 },
-        { name: 'Cimento', quantity: area * 0.003, unit: 'kg', pricePerUnit: 0.6 },
+        { name: 'Areia', quantity: area * 0.015, unit: 'm³', pricePerUnit: 40 },
+        { name: 'Cal', quantity: area * 1.5, unit: 'kg', pricePerUnit: 0.5 },
+        { name: 'Cimento', quantity: area * 2, unit: 'kg', pricePerUnit: 0.6 },
         { name: 'Carros de Mão (Areia)', quantity: Math.ceil(area * 0.005 * 12), unit: 'und', pricePerUnit: 0 },
       ];
     case 'piso':
@@ -65,13 +102,6 @@ export const calculateTotalPrice = (materials: Material[]): number => {
   return materials.reduce((total, material) => {
     return total + (material.quantity * material.pricePerUnit);
   }, 0);
-};
-
-export const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('pt-PT', {
-    style: 'currency',
-    currency: 'EUR'
-  }).format(value);
 };
 
 export const formatNumber = (value: number): string => {

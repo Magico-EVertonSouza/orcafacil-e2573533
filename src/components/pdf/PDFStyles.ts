@@ -1,37 +1,41 @@
 
 import { StyleSheet } from '@react-pdf/renderer';
 
-// PDF document styles centralized in one file
 export const styles = StyleSheet.create({
   page: {
-    flexDirection: 'column',
-    backgroundColor: '#ffffff',
+    fontFamily: 'Helvetica',
+    fontSize: 12,
     padding: 30,
+    lineHeight: 1.5,
   },
   header: {
     marginBottom: 20,
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#33C3F0',
+    borderBottom: '1 solid #eaeaea',
+    paddingBottom: 10,
   },
-  headerTitle: {
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  logo: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#33C3F0',
+    color: '#333',
   },
-  headerSubtitle: {
-    fontSize: 12,
-    color: '#8E9196',
+  dateText: {
+    fontSize: 10,
+    color: '#666',
   },
   section: {
     marginBottom: 15,
+    borderBottom: '1 solid #eaeaea',
+    paddingBottom: 10,
   },
   serviceHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: '#F1F1F1',
+    backgroundColor: '#f3f4f6',
     padding: 10,
+    borderRadius: 4,
     marginBottom: 10,
   },
   serviceName: {
@@ -39,33 +43,38 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   serviceDetails: {
-    fontSize: 12,
+    fontSize: 10,
+    color: '#666',
+    marginTop: 5,
   },
   table: {
-    width: '100%',
+    marginTop: 10,
     marginBottom: 10,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: '#F1F1F1',
-  },
-  tableRow: {
-    flexDirection: 'row',
   },
   tableHeaderRow: {
     flexDirection: 'row',
-    backgroundColor: '#F6F6F7',
+    borderBottomWidth: 1,
+    borderBottomColor: '#bbb',
+    paddingBottom: 4,
+    backgroundColor: '#eaeaea',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eaeaea',
+    paddingVertical: 4,
   },
   tableHeader: {
-    padding: 5,
-    fontSize: 10,
     fontWeight: 'bold',
+    padding: 4,
+    fontSize: 10,
   },
   tableCell: {
-    padding: 5,
-    fontSize: 10,
+    padding: 4,
+    fontSize: 9,
   },
   nameColumn: {
-    width: '40%',
+    width: '30%',
   },
   quantityColumn: {
     width: '15%',
@@ -75,37 +84,35 @@ export const styles = StyleSheet.create({
     width: '15%',
   },
   priceColumn: {
-    width: '15%',
+    width: '20%',
     textAlign: 'right',
   },
   subtotalColumn: {
-    width: '15%',
+    width: '20%',
     textAlign: 'right',
   },
   serviceTotal: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    padding: 5,
+    marginTop: 10,
   },
   serviceTotalText: {
-    fontSize: 12,
     fontWeight: 'bold',
-    marginRight: 5,
+    marginRight: 10,
   },
   serviceTotalValue: {
-    fontSize: 12,
     fontWeight: 'bold',
   },
   summarySection: {
     marginTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#33C3F0',
-    paddingTop: 10,
+    padding: 10,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 4,
   },
   summaryTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
-    marginBottom: 5,
+    marginBottom: 10,
   },
   summaryRow: {
     flexDirection: 'row',
@@ -113,25 +120,25 @@ export const styles = StyleSheet.create({
     marginBottom: 5,
   },
   summaryLabel: {
-    fontSize: 12,
+    fontWeight: 'bold',
   },
   summaryValue: {
-    fontSize: 12,
-    fontWeight: 'bold',
+    textAlign: 'right',
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 5,
-    padding: 10,
-    backgroundColor: '#F1F1F1',
+    marginTop: 10,
+    paddingTop: 5,
+    borderTopWidth: 1,
+    borderTopColor: '#bbb',
   },
   totalLabel: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 'bold',
   },
   totalValue: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 'bold',
   },
   footer: {
@@ -139,11 +146,46 @@ export const styles = StyleSheet.create({
     bottom: 30,
     left: 30,
     right: 30,
-    fontSize: 10,
-    color: '#8E9196',
     textAlign: 'center',
+    fontSize: 10,
+    color: '#666',
     borderTopWidth: 1,
-    borderTopColor: '#F1F1F1',
+    borderTopColor: '#eaeaea',
     paddingTop: 10,
   },
+  // Estilos para os cômodos
+  roomsSection: {
+    marginTop: 10,
+    marginBottom: 15,
+    padding: 5,
+  },
+  roomsSectionTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  roomItem: {
+    marginBottom: 8,
+    padding: 5,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 4,
+  },
+  roomName: {
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  roomArea: {
+    fontSize: 10,
+    color: '#555',
+    marginTop: 2,
+    marginBottom: 4,
+  },
+  wallsList: {
+    paddingLeft: 10,
+  },
+  wallItem: {
+    fontSize: 9,
+    color: '#666',
+    marginBottom: 2,
+  }
 });

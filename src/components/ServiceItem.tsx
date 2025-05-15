@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ServiceCalculation } from "@/types";
 import { getServiceInfo } from "@/utils/serviceData";
-import { formatCurrency, formatNumber } from "@/utils/calculationUtils";
+import { formatNumber } from "@/utils/calculationUtils";
+import { formatCurrencyByRegion } from "@/utils/regionData";
 import MaterialsList from "@/components/MaterialsList";
 import { Trash } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -27,10 +28,25 @@ const ServiceItem = ({ service, onRemove }: ServiceItemProps) => {
           <CardTitle className="text-lg">{serviceInfo.name}</CardTitle>
         </div>
         <div className="text-sm text-gray-600">
-          {formatNumber(service.width)}m x {formatNumber(service.height)}m = {formatNumber(service.area)}m²
+          {service.rooms.length} cômodos, área total: {formatNumber(service.totalArea)}m²
         </div>
       </CardHeader>
-      <CardContent className="pt-4">
+      <CardContent className="pt-4 space-y-4">
+        <div className="bg-gray-50 p-3 rounded-lg">
+          <h4 className="font-medium mb-2">Cômodos:</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {service.rooms.map(room => (
+              <div key={room.id} className="text-sm border p-2 rounded bg-white">
+                <p className="font-medium">{room.name}</p>
+                <p className="text-gray-600">
+                  {room.walls.length} {service.type === 'piso' ? 'áreas' : 'paredes'}, 
+                  total: {formatNumber(room.totalArea)}m²
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+        
         <MaterialsList materials={service.materials} showPrices={true} />
       </CardContent>
       <CardFooter className="flex justify-between items-center border-t pt-3">
@@ -45,7 +61,9 @@ const ServiceItem = ({ service, onRemove }: ServiceItemProps) => {
         </Button>
         <div className="text-right">
           <p className="text-sm text-gray-600">Total deste serviço:</p>
-          <p className="font-bold text-lg">{formatCurrency(service.totalPrice)}</p>
+          <p className="font-bold text-lg">
+            {formatCurrencyByRegion(service.totalPrice, service.region)}
+          </p>
         </div>
       </CardFooter>
     </Card>
