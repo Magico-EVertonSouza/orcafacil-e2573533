@@ -62,6 +62,9 @@ export const services: ServiceInfo[] = [
   },
 ];
 
+// Export services as servicesList to match the import in Index.tsx
+export const servicesList = services;
+
 export const getServiceInfo = (serviceType: ServiceType): ServiceInfo => {
   return services.find(service => service.id === serviceType) || services[0];
 };
