@@ -6,10 +6,6 @@ export const calculateArea = (width: number, height: number): number => {
   return width * height;
 };
 
-export const calculateWallArea = (width: number, height: number): number => {
-  return width * height;
-};
-
 export const calculateMaterials = (serviceType: ServiceType, area: number): Material[] => {
   switch (serviceType) {
     case 'reboco':
