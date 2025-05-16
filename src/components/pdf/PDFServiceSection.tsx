@@ -2,11 +2,9 @@
 import { Text, View } from '@react-pdf/renderer';
 import { ServiceCalculation } from '@/types';
 import { getServiceInfo } from '@/utils/serviceData';
-import { formatNumber } from '@/utils/calculationUtils';
-import { formatCurrencyByRegion } from '@/utils/regionData';
+import { formatNumber, formatCurrency } from '@/utils/calculationUtils';
 import { styles } from './PDFStyles';
 import PDFMaterialsTable from './PDFMaterialsTable';
-import PDFRoomsList from './PDFRoomsList';
 
 interface PDFServiceSectionProps {
   service: ServiceCalculation;
@@ -20,19 +18,15 @@ const PDFServiceSection = ({ service }: PDFServiceSectionProps) => {
       <View style={styles.serviceHeader}>
         <Text style={styles.serviceName}>{serviceInfo.name}</Text>
         <Text style={styles.serviceDetails}>
-          Área Total: {formatNumber(service.totalArea)}m²
+          {formatNumber(service.width)}m x {formatNumber(service.height)}m = {formatNumber(service.area)}m²
         </Text>
       </View>
-      
-      <PDFRoomsList rooms={service.rooms} serviceType={service.type} />
 
       <PDFMaterialsTable materials={service.materials} />
 
       <View style={styles.serviceTotal}>
         <Text style={styles.serviceTotalText}>Total do serviço:</Text>
-        <Text style={styles.serviceTotalValue}>
-          {formatCurrencyByRegion(service.totalPrice, service.region)}
-        </Text>
+        <Text style={styles.serviceTotalValue}>{formatCurrency(service.totalPrice)}</Text>
       </View>
     </View>
   );
