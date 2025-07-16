@@ -61,7 +61,7 @@ const Index = () => {
             <ServiceCard 
               key={service.id} 
               service={service} 
-              onClick={() => handleServiceSelect(service.type)}
+              onClick={() => handleServiceSelect(service.id)}
             />
           ))}
         </div>
