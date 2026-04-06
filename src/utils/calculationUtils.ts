@@ -1,12 +1,20 @@
 
-import { Material, ServiceCalculation, ServiceType } from "@/types";
+import { Material, ServiceType, RegionPricing, Room, Wall } from "@/types";
 
-// Funções para cálculo de materiais
 export const calculateArea = (width: number, height: number): number => {
   return width * height;
 };
 
-export const calculateMaterials = (serviceType: ServiceType, area: number): Material[] => {
+export const calculateWallArea = (wall: Wall): number => {
+  return wall.width * wall.height;
+};
+
+export const calculateRoomTotalArea = (walls: Wall[]): number => {
+  return walls.reduce((total, wall) => total + wall.area, 0);
+};
+
+/** Base prices (Portugal / EUR baseline). Regional multiplier is applied later. */
+const getBaseMaterials = (serviceType: ServiceType, area: number): Material[] => {
   switch (serviceType) {
     case 'reboco':
       return [
@@ -61,16 +69,31 @@ export const calculateMaterials = (serviceType: ServiceType, area: number): Mate
   }
 };
 
+export const calculateMaterials = (serviceType: ServiceType, area: number, regionPricing?: RegionPricing): Material[] => {
+  const baseMaterials = getBaseMaterials(serviceType, area);
+  const multiplier = regionPricing?.priceMultiplier ?? 1;
+  return baseMaterials.map(m => ({
+    ...m,
+    pricePerUnit: Math.round(m.pricePerUnit * multiplier * 100) / 100,
+  }));
+};
+
+export const calculateRoomMaterials = (serviceType: ServiceType, room: Room, regionPricing: RegionPricing): { materials: Material[]; totalPrice: number } => {
+  const materials = calculateMaterials(serviceType, room.totalArea, regionPricing);
+  const totalPrice = calculateTotalPrice(materials);
+  return { materials, totalPrice };
+};
+
 export const calculateTotalPrice = (materials: Material[]): number => {
   return materials.reduce((total, material) => {
     return total + (material.quantity * material.pricePerUnit);
   }, 0);
 };
 
-export const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('pt-PT', {
+export const formatCurrency = (value: number, currency = 'EUR', locale = 'pt-PT'): string => {
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency: 'EUR'
+    currency,
   }).format(value);
 };
 
