@@ -6,9 +6,11 @@ import { formatCurrency, formatNumber } from "@/utils/calculationUtils";
 interface MaterialsListProps {
   materials: Material[];
   showPrices?: boolean;
+  currency?: string;
+  locale?: string;
 }
 
-const MaterialsList = ({ materials, showPrices = true }: MaterialsListProps) => {
+const MaterialsList = ({ materials, showPrices = true, currency = "EUR", locale = "pt-PT" }: MaterialsListProps) => {
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -33,8 +35,8 @@ const MaterialsList = ({ materials, showPrices = true }: MaterialsListProps) => 
               <TableCell>{material.unit}</TableCell>
               {showPrices && (
                 <>
-                  <TableCell className="text-right">{formatCurrency(material.pricePerUnit)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(material.quantity * material.pricePerUnit)}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(material.pricePerUnit, currency, locale)}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(material.quantity * material.pricePerUnit, currency, locale)}</TableCell>
                 </>
               )}
             </TableRow>
