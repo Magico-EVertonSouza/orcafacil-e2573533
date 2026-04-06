@@ -6,9 +6,11 @@ import { styles } from './PDFStyles';
 
 interface PDFMaterialsTableProps {
   materials: Material[];
+  currency?: string;
+  locale?: string;
 }
 
-const PDFMaterialsTable = ({ materials }: PDFMaterialsTableProps) => (
+const PDFMaterialsTable = ({ materials, currency = "EUR", locale = "pt-PT" }: PDFMaterialsTableProps) => (
   <View style={styles.table}>
     <View style={styles.tableHeaderRow}>
       <View style={[styles.tableHeader, styles.nameColumn]}>
@@ -40,10 +42,10 @@ const PDFMaterialsTable = ({ materials }: PDFMaterialsTableProps) => (
           <Text>{material.unit}</Text>
         </View>
         <View style={[styles.tableCell, styles.priceColumn]}>
-          <Text>{formatCurrency(material.pricePerUnit)}</Text>
+          <Text>{formatCurrency(material.pricePerUnit, currency, locale)}</Text>
         </View>
         <View style={[styles.tableCell, styles.subtotalColumn]}>
-          <Text>{formatCurrency(material.quantity * material.pricePerUnit)}</Text>
+          <Text>{formatCurrency(material.quantity * material.pricePerUnit, currency, locale)}</Text>
         </View>
       </View>
     ))}

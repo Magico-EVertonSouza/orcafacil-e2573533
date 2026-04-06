@@ -9,13 +9,10 @@ interface PDFSummaryProps {
 }
 
 const PDFSummary = ({ services }: PDFSummaryProps) => {
-  const calculateTotalArea = () => {
-    return services.reduce((total, service) => total + service.area, 0);
-  };
-
-  const calculateTotalPrice = () => {
-    return services.reduce((total, service) => total + service.totalPrice, 0);
-  };
+  const totalArea = services.reduce((total, s) => total + s.totalArea, 0);
+  const totalPrice = services.reduce((total, s) => total + s.totalPrice, 0);
+  const currency = services.length > 0 ? services[0].regionPricing.currency : "EUR";
+  const locale = services.length > 0 ? services[0].regionPricing.locale : "pt-PT";
 
   return (
     <View style={styles.summarySection}>
@@ -28,12 +25,12 @@ const PDFSummary = ({ services }: PDFSummaryProps) => {
       
       <View style={styles.summaryRow}>
         <Text style={styles.summaryLabel}>Área total:</Text>
-        <Text style={styles.summaryValue}>{formatNumber(calculateTotalArea())} m²</Text>
+        <Text style={styles.summaryValue}>{formatNumber(totalArea)} m²</Text>
       </View>
 
       <View style={styles.totalRow}>
         <Text style={styles.totalLabel}>VALOR TOTAL DO ORÇAMENTO:</Text>
-        <Text style={styles.totalValue}>{formatCurrency(calculateTotalPrice())}</Text>
+        <Text style={styles.totalValue}>{formatCurrency(totalPrice, currency, locale)}</Text>
       </View>
     </View>
   );
