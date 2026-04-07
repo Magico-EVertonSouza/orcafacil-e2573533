@@ -93,9 +93,15 @@ export type Database = {
           created_at: string
           height: number
           id: string
+          region_country: string | null
+          region_currency: string | null
+          region_locale: string | null
+          region_multiplier: number | null
+          region_name: string | null
           room_id: string
           service_type_id: string
           total_price: number
+          walls_data: Json | null
           width: number
         }
         Insert: {
@@ -103,9 +109,15 @@ export type Database = {
           created_at?: string
           height: number
           id?: string
+          region_country?: string | null
+          region_currency?: string | null
+          region_locale?: string | null
+          region_multiplier?: number | null
+          region_name?: string | null
           room_id: string
           service_type_id: string
           total_price?: number
+          walls_data?: Json | null
           width: number
         }
         Update: {
@@ -113,9 +125,15 @@ export type Database = {
           created_at?: string
           height?: number
           id?: string
+          region_country?: string | null
+          region_currency?: string | null
+          region_locale?: string | null
+          region_multiplier?: number | null
+          region_name?: string | null
           room_id?: string
           service_type_id?: string
           total_price?: number
+          walls_data?: Json | null
           width?: number
         }
         Relationships: [
