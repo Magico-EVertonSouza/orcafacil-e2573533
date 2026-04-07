@@ -9,15 +9,17 @@ import PDFFooter from './PDFFooter';
 
 interface OrcamentoPDFProps {
   services: ServiceCalculation[];
+  budgetTitle?: string;
+  clientName?: string;
 }
 
-const OrcamentoPDF = ({ services }: OrcamentoPDFProps) => {
+const OrcamentoPDF = ({ services, budgetTitle, clientName }: OrcamentoPDFProps) => {
   const today = new Date().toLocaleDateString('pt-PT');
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <PDFHeader date={today} />
+        <PDFHeader date={today} budgetTitle={budgetTitle} clientName={clientName} />
 
         {services.map((service, index) => (
           <PDFServiceSection key={index} service={service} />
@@ -33,12 +35,14 @@ const OrcamentoPDF = ({ services }: OrcamentoPDFProps) => {
 
 interface PDFViewerContainerProps {
   services: ServiceCalculation[];
+  budgetTitle?: string;
+  clientName?: string;
 }
 
-const PDFViewerContainer = ({ services }: PDFViewerContainerProps) => {
+const PDFViewerContainer = ({ services, budgetTitle, clientName }: PDFViewerContainerProps) => {
   return (
     <PDFViewer style={{ width: '100%', height: '70vh' }}>
-      <OrcamentoPDF services={services} />
+      <OrcamentoPDF services={services} budgetTitle={budgetTitle} clientName={clientName} />
     </PDFViewer>
   );
 };
