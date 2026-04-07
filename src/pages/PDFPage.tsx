@@ -9,7 +9,8 @@ import { ArrowLeft } from "lucide-react";
 const PDFPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { services } = location.state as { services: ServiceCalculation[] } || { services: [] };
+  const state = (location.state as { services: ServiceCalculation[]; budgetTitle?: string; clientName?: string }) || { services: [] };
+  const { services, budgetTitle, clientName } = state;
 
   if (!services || services.length === 0) {
     return (
@@ -31,14 +32,16 @@ const PDFPage = () => {
             <ArrowLeft size={16} /> 
             Voltar para o orçamento
           </Button>
-          <h1 className="text-xl font-semibold">Orçamento em PDF</h1>
+          <h1 className="text-xl font-semibold">
+            {budgetTitle ? `PDF: ${budgetTitle}` : "Orçamento em PDF"}
+          </h1>
         </div>
 
         <div className="bg-white p-4 rounded-lg shadow">
-          <PDFViewerContainer services={services} />
+          <PDFViewerContainer services={services} budgetTitle={budgetTitle} clientName={clientName} />
         </div>
 
-        <p className="text-sm text-gray-600 text-center">
+        <p className="text-sm text-muted-foreground text-center">
           Você pode imprimir ou salvar este PDF usando as opções do visualizador acima.
         </p>
       </div>
