@@ -1,23 +1,21 @@
 
 
-## Plan: Adicionar seção de boas-vindas e tutorial na tela inicial
+## Plan: Corrigir erro de build — adicionar dependência @supabase/supabase-js
 
-### O que sera feito
-Criar um componente `WelcomeSection` que aparece acima do formulario de criacao de orcamento, explicando ao usuario de forma clara e visual os passos para criar um orcamento.
+### Problema
+O arquivo `src/integrations/supabase/client.ts` importa `@supabase/supabase-js`, mas esse pacote não está listado no `package.json`.
 
-### Componente: `src/components/WelcomeSection.tsx`
-- Hero section com titulo acolhedor e subtitulo explicativo
-- 4 passos visuais em cards com icones e numeracao:
-  1. **Crie seu orcamento** — De um nome e comece
-  2. **Escolha os servicos** — Selecione reboco, pintura, piso, etc.
-  3. **Informe as medidas** — Adicione comodos e paredes com dimensoes reais
-  4. **Receba o resultado** — Veja materiais, custos e exporte por PDF ou WhatsApp
-- Design limpo com icones do Lucide (ClipboardList, Hammer, Ruler, FileCheck)
-- Responsivo: 1 coluna no mobile, 4 colunas no desktop
+### Solução
+Adicionar `@supabase/supabase-js` às dependências do `package.json`:
 
-### Alteracao: `src/pages/Index.tsx`
-- Importar e renderizar `<WelcomeSection />` antes do `<BudgetHeader mode="create" />` (apenas quando `!budgetId`)
-- Nenhuma outra alteracao no fluxo existente
+```
+"@supabase/supabase-js": "^2.49.4"
+```
 
-### Nenhuma alteracao no banco de dados
+### Arquivo alterado
+| Arquivo | Ação |
+|---------|------|
+| `package.json` | Adicionar `@supabase/supabase-js` nas dependencies |
+
+### Nenhuma outra alteração necessária
 
