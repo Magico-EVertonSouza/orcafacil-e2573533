@@ -14,6 +14,7 @@ import BudgetHeader from "@/components/BudgetHeader";
 import { useBudgetMutations } from "@/hooks/useBudget";
 import { toast } from "sonner";
 import { FileDown } from "lucide-react";
+import WelcomeSection from "@/components/WelcomeSection";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -88,12 +89,7 @@ const Index = () => {
     <Layout>
       {!budgetId ? (
         <>
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Orçamento Fácil para Construção</h1>
-            <p className="text-lg text-muted-foreground">
-              Calcule materiais e custos para diversos serviços de construção
-            </p>
-          </div>
+          <WelcomeSection />
           <BudgetHeader mode="create" onCreate={handleCreateBudget} />
         </>
       ) : (
