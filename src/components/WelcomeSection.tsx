@@ -26,11 +26,11 @@ const steps = [
 const WelcomeSection = () => {
   return (
     <div className="mb-10">
-      <div className="text-center mb-8">
+      <div className="text-center mb-8 animate-fade-in">
         <h1 className="text-3xl md:text-4xl font-bold mb-3">
           Bem-vindo ao <span className="text-primary">OrçaFácil</span>
         </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: "150ms", animationFillMode: "both" }}>
           Monte orçamentos profissionais para construção civil em poucos minutos,
           sem complicações. Siga os passos abaixo para começar:
         </p>
@@ -40,7 +40,8 @@ const WelcomeSection = () => {
         {steps.map((step, index) => (
           <div
             key={step.title}
-            className="relative rounded-xl border bg-card p-5 text-center shadow-sm hover:shadow-md transition-shadow"
+            className="relative rounded-xl border bg-card p-5 text-center shadow-sm hover:shadow-md hover-scale animate-fade-in"
+            style={{ animationDelay: `${300 + index * 120}ms`, animationFillMode: "both" }}
           >
             <div className="absolute -top-3 -left-3 w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center shadow">
               {index + 1}
