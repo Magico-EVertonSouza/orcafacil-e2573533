@@ -14,6 +14,7 @@ import BudgetHeader from "@/components/BudgetHeader";
 import { useBudgetMutations } from "@/hooks/useBudget";
 import { toast } from "sonner";
 import { FileDown } from "lucide-react";
+import WelcomeSection from "@/components/WelcomeSection";
 
 const Index = () => {
   const navigate = useNavigate();
