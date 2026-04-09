@@ -1,17 +1,26 @@
 
 
-## Plano: Corrigir erro de build — dependência ausente
+## Plano: Corrigir erro de build e adicionar download PDF na secção de orçamentos
 
 ### Problema
-O arquivo `src/integrations/supabase/client.ts` importa `@supabase/supabase-js`, mas esse pacote não existe no `package.json`.
+1. **Erro de build**: `@supabase/supabase-js` não está no `package.json` — precisa ser adicionado como dependência.
+2. **Download PDF**: O botão PDF na página de orçamentos navega para outra página com um viewer. O utilizador quer poder fazer download direto do PDF.
 
-### Solução
-Adicionar a dependência ao `package.json`:
+### Alterações
 
 | Arquivo | Alteração |
 |---------|-----------|
-| `package.json` | Adicionar `"@supabase/supabase-js": "^2.49.4"` na seção `dependencies` (linha 69, antes de `"zod"`) |
+| `package.json` | Adicionar `"@supabase/supabase-js": "^2.49.4"` nas dependencies |
+| `src/pages/OrcamentosPage.tsx` | Substituir navegação para `/pdf` por download direto usando `@react-pdf/renderer`'s `pdf()` function — ao clicar no botão PDF, gera o blob e faz download automático do ficheiro `.pdf` |
 
-### Nenhuma outra alteração necessária
-O código em `client.ts` já está correto — apenas a dependência está faltando.
+### Detalhes técnicos
+
+Na `OrcamentosPage`, em vez de navegar para a página PDF:
+- Importar `pdf` de `@react-pdf/renderer` e o componente `OrcamentoPDF`
+- Criar função `handleDownloadPDF` que:
+  1. Carrega os dados do orçamento
+  2. Gera o blob com `pdf(<OrcamentoPDF ... />).toBlob()`
+  3. Cria link temporário e dispara o download
+  4. Mostra toast de sucesso
+- O botão PDF existente passa a chamar esta função diretamente
 
