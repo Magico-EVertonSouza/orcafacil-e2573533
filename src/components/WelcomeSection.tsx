@@ -1,4 +1,5 @@
 import { ClipboardList, Hammer, Ruler, FileCheck } from "lucide-react";
+import logo from "@/assets/logo-orcafacil.png";
 
 const steps = [
   {
@@ -27,6 +28,7 @@ const WelcomeSection = () => {
   return (
     <div className="mb-10">
       <div className="text-center mb-8 animate-fade-in">
+        <img src={logo} alt="Logo OrçaFácil" width={80} height={80} className="mx-auto mb-4" />
         <h1 className="text-3xl md:text-4xl font-bold mb-3">
           Bem-vindo ao <span className="text-primary">OrçaFácil</span>
         </h1>
@@ -35,7 +37,6 @@ const WelcomeSection = () => {
           sem complicações. Siga os passos abaixo para começar:
         </p>
       </div>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {steps.map((step, index) => (
           <div
