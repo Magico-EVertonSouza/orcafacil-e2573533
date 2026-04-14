@@ -163,6 +163,7 @@ export type Database = {
           title: string
           total_price: number
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           client_name?: string | null
@@ -173,6 +174,7 @@ export type Database = {
           title?: string
           total_price?: number
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           client_name?: string | null
@@ -183,6 +185,7 @@ export type Database = {
           title?: string
           total_price?: number
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -259,7 +262,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      budget_belongs_to_user: {
+        Args: { _budget_id: string; _user_id: string }
+        Returns: boolean
+      }
+      room_belongs_to_user: {
+        Args: { _room_id: string; _user_id: string }
+        Returns: boolean
+      }
+      service_belongs_to_user: {
+        Args: { _service_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

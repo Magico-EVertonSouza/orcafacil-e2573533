@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ServiceCalculation } from "@/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface BudgetSummary {
   id: string;
@@ -124,11 +125,13 @@ export const useLoadBudget = (budgetId: string | null) => {
 
 export const useBudgetMutations = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const createBudget = async (title: string, clientName?: string): Promise<string> => {
+    if (!user) throw new Error("Usuário não autenticado");
     const { data, error } = await supabase
       .from("budgets")
-      .insert({ title, client_name: clientName || null })
+      .insert({ title, client_name: clientName || null, user_id: user.id })
       .select("id")
       .single();
     if (error) throw error;
