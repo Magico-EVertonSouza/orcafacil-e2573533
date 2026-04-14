@@ -1,6 +1,5 @@
 
 import { pdf } from '@react-pdf/renderer';
-import { createElement } from 'react';
 import { OrcamentoPDF } from '@/components/pdf/PDFDocument';
 import { ServiceCalculation } from '@/types';
 
@@ -9,8 +8,9 @@ export const downloadBudgetPDF = async (
   budgetTitle?: string,
   clientName?: string
 ): Promise<void> => {
-  const doc = createElement(OrcamentoPDF, { services, budgetTitle, clientName });
-  const blob = await pdf(doc).toBlob();
+  const blob = await pdf(
+    <OrcamentoPDF services={services} budgetTitle={budgetTitle} clientName={clientName} />
+  ).toBlob();
   const blobUrl = URL.createObjectURL(blob);
 
   const a = document.createElement('a');
