@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "postinstall": "vite", 
+    "postinstall": "vite",
     "dev": "vite",
     "build": "node_modules/.bin/vite build",
     "build:dev": "node_modules/.bin/vite build --mode development",
@@ -66,6 +66,7 @@
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.1.0",
     "vaul": "^0.9.3",
+    "@supabase/supabase-js": "^2.49.4",
     "zod": "^3.23.8"
   },
   "devDependencies": {
