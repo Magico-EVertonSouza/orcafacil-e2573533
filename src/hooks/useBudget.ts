@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ServiceCalculation } from "@/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface BudgetSummary {
   id: string;
