@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,17 +13,18 @@ import ServiceCalculator from "@/components/ServiceCalculator";
 import BudgetHeader from "@/components/BudgetHeader";
 import { useBudgetMutations } from "@/hooks/useBudget";
 import { toast } from "sonner";
-import { FileDown } from "lucide-react";
+import { FileDown, Loader2 } from "lucide-react";
 import WelcomeSection from "@/components/WelcomeSection";
+import { downloadBudgetPDF } from "@/utils/pdfDownload";
 
 const Index = () => {
-  const navigate = useNavigate();
   const [services, setServices] = useState<ServiceCalculation[]>([]);
   const [activeServiceType, setActiveServiceType] = useState<ServiceType | null>(null);
   const [budgetId, setBudgetId] = useState<string | null>(null);
   const [budgetTitle, setBudgetTitle] = useState("");
   const [budgetClientName, setBudgetClientName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const { createBudget, saveServiceToBudget } = useBudgetMutations();
 
@@ -72,14 +73,17 @@ const Index = () => {
     setActiveServiceType(null);
   };
 
-  const handleGeneratePDF = () => {
-    navigate("/pdf", {
-      state: {
-        services,
-        budgetTitle,
-        clientName: budgetClientName,
-      },
-    });
+  const handleGeneratePDF = async () => {
+    try {
+      setIsGeneratingPDF(true);
+      await downloadBudgetPDF(services, budgetTitle, budgetClientName);
+      toast.success("PDF gerado com sucesso!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Erro ao gerar PDF");
+    } finally {
+      setIsGeneratingPDF(false);
+    }
   };
 
   const currency = services.length > 0 ? services[0].regionPricing.currency : "EUR";
@@ -145,9 +149,9 @@ const Index = () => {
                   <p className="text-2xl font-bold text-primary">
                     {formatCurrency(totalPrice, currency, locale)}
                   </p>
-                  <Button onClick={handleGeneratePDF} className="flex items-center gap-2">
-                    <FileDown size={16} />
-                    Gerar PDF
+                  <Button onClick={handleGeneratePDF} disabled={isGeneratingPDF} className="flex items-center gap-2">
+                    {isGeneratingPDF ? <Loader2 size={16} className="animate-spin" /> : <FileDown size={16} />}
+                    {isGeneratingPDF ? 'Gerando...' : 'Baixar PDF'}
                   </Button>
                 </CardContent>
               </Card>
