@@ -86,6 +86,9 @@ const LoginPage = () => {
               {isSignUp ? "Já tem conta? Entrar" : "Não tem conta? Criar"}
             </button>
           </div>
+          <div className="mt-2 text-center text-xs text-muted-foreground">
+            <a href="/privacidade" className="hover:underline">Política de Privacidade</a>
+          </div>
         </CardContent>
       </Card>
     </div>
