@@ -12,6 +12,7 @@ import OrcamentosPage from "./pages/OrcamentosPage";
 import AjudaPage from "./pages/AjudaPage";
 import SobrePage from "./pages/SobrePage";
 import LoginPage from "./pages/LoginPage";
+import PrivacidadePage from "./pages/PrivacidadePage";
 import NotFound from "./pages/NotFound";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/orcamentos" element={<ProtectedRoute><OrcamentosPage /></ProtectedRoute>} />
               <Route path="/ajuda" element={<ProtectedRoute><AjudaPage /></ProtectedRoute>} />
               <Route path="/sobre" element={<ProtectedRoute><SobrePage /></ProtectedRoute>} />
+              <Route path="/privacidade" element={<PrivacidadePage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
