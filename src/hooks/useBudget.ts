@@ -19,6 +19,10 @@ export interface BudgetSummary {
   updated_at: string;
 }
 
+export interface BudgetFull extends BudgetSummary {
+  rooms: any[];
+}
+
 /**
  * =========================================
  * LISTAR ORÇAMENTOS
@@ -45,6 +49,72 @@ export const useListBudgets = () => {
 
 /**
  * =========================================
+ * CARREGAR ORÇAMENTO COMPLETO
+ * (RESTAURADO - necessário para página OrcamentosPage)
+ * =========================================
+ */
+export const useLoadBudget = (budgetId: string | null) => {
+  return useQuery({
+    queryKey: ["budget", budgetId],
+    enabled: !!budgetId,
+
+    queryFn: async (): Promise<BudgetFull | null> => {
+      if (!budgetId) return null;
+
+      const { data: budget, error: bErr } = await supabase
+        .from("budgets")
+        .select("*")
+        .eq("id", budgetId)
+        .single();
+
+      if (bErr) {
+        console.error("Erro budget:", bErr);
+        throw bErr;
+      }
+
+      const { data: rooms, error: rErr } = await supabase
+        .from("budget_rooms")
+        .select("*")
+        .eq("budget_id", budgetId);
+
+      if (rErr) {
+        console.error("Erro rooms:", rErr);
+        throw rErr;
+      }
+
+      const { data: services } = await supabase
+        .from("budget_services")
+        .select("*");
+
+      const { data: materials } = await supabase
+        .from("budget_service_materials")
+        .select("*");
+
+      const roomsFull =
+        rooms?.map((room) => ({
+          ...room,
+          services:
+            services
+              ?.filter((s) => s.room_id === room.id)
+              .map((s) => ({
+                ...s,
+                materials:
+                  materials?.filter(
+                    (m) => m.budget_service_id === s.id
+                  ) || [],
+              })) || [],
+        })) || [];
+
+      return {
+        ...budget,
+        rooms: roomsFull,
+      };
+    },
+  });
+};
+
+/**
+ * =========================================
  * MUTAÇÕES
  * =========================================
  */
@@ -53,9 +123,7 @@ export const useBudgetMutations = () => {
   const { user } = useAuth();
 
   /**
-   * =========================================
-   * CRIAR ORÇAMENTO (LIVRE - SEM LOGIN OBRIGATÓRIO)
-   * =========================================
+   * CRIAR ORÇAMENTO (LOGIN OPCIONAL)
    */
   const createBudget = async (
     title: string,
@@ -67,16 +135,12 @@ export const useBudgetMutations = () => {
       total_price: 0,
     };
 
-    /**
-     * 👇 user_id agora é OPCIONAL
-     * - se logado → salva user_id
-     * - se não → cria orçamento anônimo
-     */
+    // login opcional
     if (user?.id) {
       payload.user_id = user.id;
     }
 
-    console.log("📦 Criando orçamento com payload:", payload);
+    console.log("📦 Criando orçamento:", payload);
 
     const { data, error } = await supabase
       .from("budgets")
@@ -85,7 +149,7 @@ export const useBudgetMutations = () => {
       .single();
 
     if (error) {
-      console.error("💥 Erro ao criar orçamento:", error);
+      console.error("💥 Erro createBudget:", error);
       throw error;
     }
 
@@ -95,51 +159,16 @@ export const useBudgetMutations = () => {
   };
 
   /**
-   * =========================================
-   * DELETAR ORÇAMENTO
-   * =========================================
+   * DELETAR
    */
   const deleteBudget = async (budgetId: string) => {
-    const { data: rooms } = await supabase
-      .from("budget_rooms")
-      .select("id")
-      .eq("budget_id", budgetId);
-
-    if (rooms?.length) {
-      const roomIds = rooms.map((r) => r.id);
-
-      const { data: services } = await supabase
-        .from("budget_services")
-        .select("id")
-        .in("room_id", roomIds);
-
-      if (services?.length) {
-        const serviceIds = services.map((s) => s.id);
-
-        await supabase
-          .from("budget_service_materials")
-          .delete()
-          .in("budget_service_id", serviceIds);
-
-        await supabase
-          .from("budget_services")
-          .delete()
-          .in("room_id", roomIds);
-      }
-
-      await supabase
-        .from("budget_rooms")
-        .delete()
-        .eq("budget_id", budgetId);
-    }
-
     const { error } = await supabase
       .from("budgets")
       .delete()
       .eq("id", budgetId);
 
     if (error) {
-      console.error("Erro ao deletar orçamento:", error);
+      console.error("Erro delete:", error);
       throw error;
     }
 
@@ -147,16 +176,14 @@ export const useBudgetMutations = () => {
   };
 
   /**
-   * =========================================
-   * SALVAR SERVIÇO NO ORÇAMENTO
-   * =========================================
+   * SALVAR SERVIÇO
    */
   const saveServiceToBudget = async (
     budgetId: string,
     service: ServiceCalculation
   ) => {
     for (const room of service.rooms) {
-      const { data: roomData, error: roomErr } = await supabase
+      const { data: roomData } = await supabase
         .from("budget_rooms")
         .insert({
           budget_id: budgetId,
@@ -166,91 +193,31 @@ export const useBudgetMutations = () => {
         .select("id")
         .single();
 
-      if (roomErr) {
-        console.error("Erro ao criar room:", roomErr);
-        throw roomErr;
-      }
-
-      const wallsData = room.walls.map((w) => ({
-        id: w.id,
-        width: w.width,
-        height: w.height,
-        area: w.area,
-      }));
-
-      const { data: svcData, error: svcErr } = await supabase
+      const { data: svcData } = await supabase
         .from("budget_services")
         .insert({
-          room_id: roomData.id,
+          room_id: roomData?.id,
           service_type_id: service.type,
           area: room.totalArea,
           width: service.width || 0,
           height: service.height || 0,
           total_price: room.totalPrice,
-          region_country: service.regionPricing.country,
-          region_name: service.regionPricing.region,
-          region_currency: service.regionPricing.currency,
-          region_locale: service.regionPricing.locale,
-          region_multiplier: service.regionPricing.priceMultiplier,
-          walls_data: wallsData,
+          walls_data: room.walls,
         })
         .select("id")
         .single();
 
-      if (svcErr) {
-        console.error("Erro ao criar service:", svcErr);
-        throw svcErr;
-      }
-
-      if (room.materials.length > 0) {
-        const materialsInsert = room.materials.map((m) => ({
-          budget_service_id: svcData.id,
-          material_name: m.name,
-          quantity: m.quantity,
-          unit: m.unit,
-          price_per_unit: m.pricePerUnit,
-          total_price: m.quantity * m.pricePerUnit,
-        }));
-
-        const { error: matErr } = await supabase
-          .from("budget_service_materials")
-          .insert(materialsInsert);
-
-        if (matErr) {
-          console.error("Erro ao inserir materiais:", matErr);
-          throw matErr;
-        }
-      }
-    }
-
-    /**
-     * =========================================
-     * ATUALIZAR TOTAL
-     * =========================================
-     */
-    const { data: allRooms } = await supabase
-      .from("budget_rooms")
-      .select("id")
-      .eq("budget_id", budgetId);
-
-    if (allRooms?.length) {
-      const roomIds = allRooms.map((r) => r.id);
-
-      const { data: allSvcs } = await supabase
-        .from("budget_services")
-        .select("total_price")
-        .in("room_id", roomIds);
-
-      const total =
-        allSvcs?.reduce((sum, s) => sum + Number(s.total_price), 0) || 0;
-
-      const { error } = await supabase
-        .from("budgets")
-        .update({ total_price: total })
-        .eq("id", budgetId);
-
-      if (error) {
-        console.error("Erro ao atualizar total:", error);
+      if (room.materials.length > 0 && svcData) {
+        await supabase.from("budget_service_materials").insert(
+          room.materials.map((m) => ({
+            budget_service_id: svcData.id,
+            material_name: m.name,
+            quantity: m.quantity,
+            unit: m.unit,
+            price_per_unit: m.pricePerUnit,
+            total_price: m.quantity * m.pricePerUnit,
+          }))
+        );
       }
     }
 
