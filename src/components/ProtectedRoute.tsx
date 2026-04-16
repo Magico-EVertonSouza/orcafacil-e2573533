@@ -1,3 +1,5 @@
+import { useAuth } from "@/hooks/useAuth";
+
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { loading } = useAuth();
 
@@ -9,5 +11,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
+  // 🔥 LOGIN AGORA É OPCIONAL — NÃO BLOQUEIA MAIS O APP
   return <>{children}</>;
 };
+
+export default ProtectedRoute;
