@@ -1,8 +1,13 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ServiceCalculation } from "@/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+
+/**
+ * =========================================
+ * TIPOS DO SISTEMA DE ORÇAMENTO
+ * =========================================
+ */
 
 export interface BudgetSummary {
   id: string;
@@ -51,6 +56,12 @@ export interface BudgetMaterialRow {
   total_price: number;
 }
 
+/**
+ * =========================================
+ * LISTAR ORÇAMENTOS
+ * (não depende de login no app atual)
+ * =========================================
+ */
 export const useListBudgets = () => {
   return useQuery({
     queryKey: ["budgets"],
@@ -59,16 +70,24 @@ export const useListBudgets = () => {
         .from("budgets")
         .select("id, title, client_name, status, total_price, created_at, updated_at")
         .order("updated_at", { ascending: false });
+
       if (error) throw error;
+
       return data || [];
     },
   });
 };
 
+/**
+ * =========================================
+ * CARREGAR ORÇAMENTO COMPLETO
+ * =========================================
+ */
 export const useLoadBudget = (budgetId: string | null) => {
   return useQuery({
     queryKey: ["budget", budgetId],
     enabled: !!budgetId,
+
     queryFn: async (): Promise<BudgetFull | null> => {
       if (!budgetId) return null;
 
@@ -77,6 +96,7 @@ export const useLoadBudget = (budgetId: string | null) => {
         .select("*")
         .eq("id", budgetId)
         .single();
+
       if (bErr) throw bErr;
 
       const { data: rooms, error: rErr } = await supabase
@@ -84,27 +104,36 @@ export const useLoadBudget = (budgetId: string | null) => {
         .select("*")
         .eq("budget_id", budgetId)
         .order("sort_order");
+
       if (rErr) throw rErr;
 
       const roomIds = (rooms || []).map((r: any) => r.id);
+
       let services: any[] = [];
+
       if (roomIds.length > 0) {
         const { data: sData, error: sErr } = await supabase
           .from("budget_services")
           .select("*")
           .in("room_id", roomIds);
+
         if (sErr) throw sErr;
+
         services = sData || [];
       }
 
       const serviceIds = services.map((s: any) => s.id);
+
       let materials: any[] = [];
+
       if (serviceIds.length > 0) {
         const { data: mData, error: mErr } = await supabase
           .from("budget_service_materials")
           .select("*")
           .in("budget_service_id", serviceIds);
+
         if (mErr) throw mErr;
+
         materials = mData || [];
       }
 
@@ -113,9 +142,17 @@ export const useLoadBudget = (budgetId: string | null) => {
           .filter((s: any) => s.room_id === room.id)
           .map((s: any) => ({
             ...s,
-            materials: materials.filter((m: any) => m.budget_service_id === s.id),
+            materials: materials.filter(
+              (m: any) => m.budget_service_id === s.id
+            ),
           }));
-        return { id: room.id, name: room.name, sort_order: room.sort_order, services: roomServices };
+
+        return {
+          id: room.id,
+          name: room.name,
+          sort_order: room.sort_order,
+          services: roomServices,
+        };
       });
 
       return { ...budget, rooms: roomsFull };
@@ -123,48 +160,108 @@ export const useLoadBudget = (budgetId: string | null) => {
   });
 };
 
+/**
+ * =========================================
+ * MUTAÇÕES DO ORÇAMENTO
+ * (CRIAR / SALVAR / DELETAR)
+ * =========================================
+ */
 export const useBudgetMutations = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  const createBudget = async (title: string, clientName?: string): Promise<string> => {
-    if (!user) throw new Error("Usuário não autenticado");
+  /**
+   * =========================================
+   * CRIAR ORÇAMENTO (AGORA É LIVRE)
+   * =========================================
+   *
+   * 🔥 IMPORTANTE:
+   * - Usuário logado OU não logado pode criar orçamento
+   * - Se não tiver user, salva como "anônimo"
+   */
+  const createBudget = async (
+    title: string,
+    clientName?: string
+  ): Promise<string> => {
+    const payload: any = {
+      title,
+      client_name: clientName || null,
+    };
+
+    // 👇 só adiciona user_id se existir login
+    if (user) {
+      payload.user_id = user.id;
+    }
+
     const { data, error } = await supabase
       .from("budgets")
-      .insert({ title, client_name: clientName || null, user_id: user.id })
+      .insert(payload)
       .select("id")
       .single();
+
     if (error) throw error;
+
     queryClient.invalidateQueries({ queryKey: ["budgets"] });
+
     return data.id;
   };
 
+  /**
+   * =========================================
+   * DELETAR ORÇAMENTO
+   * =========================================
+   */
   const deleteBudget = async (budgetId: string) => {
     const { data: rooms } = await supabase
       .from("budget_rooms")
       .select("id")
       .eq("budget_id", budgetId);
-    
+
     if (rooms && rooms.length > 0) {
-      const roomIds = rooms.map(r => r.id);
+      const roomIds = rooms.map((r) => r.id);
+
       const { data: services } = await supabase
         .from("budget_services")
         .select("id")
         .in("room_id", roomIds);
-      
+
       if (services && services.length > 0) {
-        const svcIds = services.map(s => s.id);
-        await supabase.from("budget_service_materials").delete().in("budget_service_id", svcIds);
-        await supabase.from("budget_services").delete().in("room_id", roomIds);
+        const svcIds = services.map((s) => s.id);
+
+        await supabase
+          .from("budget_service_materials")
+          .delete()
+          .in("budget_service_id", svcIds);
+
+        await supabase
+          .from("budget_services")
+          .delete()
+          .in("room_id", roomIds);
       }
+
       await supabase.from("budget_rooms").delete().eq("budget_id", budgetId);
     }
-    
-    const { error } = await supabase.from("budgets").delete().eq("id", budgetId);
+
+    const { error } = await supabase
+      .from("budgets")
+      .delete()
+      .eq("id", budgetId);
+
     if (error) throw error;
+
     queryClient.invalidateQueries({ queryKey: ["budgets"] });
   };
 
+  /**
+   * =========================================
+   * SALVAR SERVIÇO NO ORÇAMENTO
+   * =========================================
+   *
+   * 🔐 IMPORTANTE:
+   * - NÃO bloqueia usuário não logado
+   * - salva mesmo assim
+   * - user_id pode ser null no banco
+   */
   const saveServiceToBudget = async (
     budgetId: string,
     service: ServiceCalculation
@@ -179,9 +276,10 @@ export const useBudgetMutations = () => {
         })
         .select("id")
         .single();
+
       if (roomErr) throw roomErr;
 
-      const wallsData = room.walls.map(w => ({
+      const wallsData = room.walls.map((w) => ({
         id: w.id,
         width: w.width,
         height: w.height,
@@ -206,10 +304,11 @@ export const useBudgetMutations = () => {
         })
         .select("id")
         .single();
+
       if (svcErr) throw svcErr;
 
       if (room.materials.length > 0) {
-        const materialsInsert = room.materials.map(m => ({
+        const materialsInsert = room.materials.map((m) => ({
           budget_service_id: svcData.id,
           material_name: m.name,
           quantity: m.quantity,
@@ -217,27 +316,38 @@ export const useBudgetMutations = () => {
           price_per_unit: m.pricePerUnit,
           total_price: m.quantity * m.pricePerUnit,
         }));
+
         const { error: matErr } = await supabase
           .from("budget_service_materials")
           .insert(materialsInsert);
+
         if (matErr) throw matErr;
       }
     }
 
-    // Update budget total
+    /**
+     * =========================================
+     * ATUALIZAR TOTAL DO ORÇAMENTO
+     * =========================================
+     */
     const { data: allRooms } = await supabase
       .from("budget_rooms")
       .select("id")
       .eq("budget_id", budgetId);
-    
+
     if (allRooms && allRooms.length > 0) {
-      const rIds = allRooms.map(r => r.id);
+      const rIds = allRooms.map((r) => r.id);
+
       const { data: allSvcs } = await supabase
         .from("budget_services")
         .select("total_price")
         .in("room_id", rIds);
-      
-      const total = (allSvcs || []).reduce((sum: number, s: any) => sum + Number(s.total_price), 0);
+
+      const total = (allSvcs || []).reduce(
+        (sum: number, s: any) => sum + Number(s.total_price),
+        0
+      );
+
       await supabase
         .from("budgets")
         .update({ total_price: total })
