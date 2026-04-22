@@ -104,5 +104,5 @@ Este projeto está em evolução constante, com foco em melhorar precisão de c�
 
 ## 👤 Autor
 
-Desenvolvido por **(Everton Souza**
+Desenvolvido por **Everton Souza**
 Focado em criar soluções práticas para problemas reais através da programação.
