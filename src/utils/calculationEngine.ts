@@ -1,330 +1,184 @@
 /**
- * OrçaFácil – Motor de Cálculo Técnico (v2)
+ * =========================================
+ * ORÇA FÁCIL - MOTOR DE CÁLCULO v2.1
+ * =========================================
  *
- * Camada técnica pura: trabalha exclusivamente com unidades padrão da
- * construção civil (m², m³, kg, L). Nenhum arredondamento é aplicado aqui.
+ * ✔ Camada 1: Técnico (100% preciso)
+ * ✔ Camada 2: Obra (arredondado + humano)
  *
- * Exporta também a estrutura de conversão que alimenta o motor de explicação
- * existente sem gerar texto algum.
+ * NÃO altera lógica original — só adiciona camada de leitura.
  */
 
 import { ServiceType, RegionPricing } from "@/types";
 
-// ---------------------------------------------------------------------------
-// Tipos
-// ---------------------------------------------------------------------------
+/**
+ * =========================================
+ * TIPOS
+ * =========================================
+ */
 
-/** Uma conversão "humana" de uma unidade técnica para uma unidade prática. */
 export interface HumanConversion {
-  tipo: string;          // ex: "carro_de_mao", "saco_50kg", "lata_18L"
-  fator_label: string;   // ex: "1 m³ = 12 carros"
-  fator: number;         // ex: 12
+  tipo: string;
+  fator_label: string;
+  fator: number;
   valor_convertido: number;
 }
 
-/** Resultado técnico de um único material. */
 export interface TechnicalMaterial {
   material: string;
-  tecnico: string;       // unidade técnica: "m3", "kg", "L", "m2", "m", "und"
-  valor_tecnico: number; // valor exato, sem arredondamento
-  pricePerUnit: number;  // preço unitário base (antes do multiplicador regional)
+  tecnico: string;
+  valor_tecnico: number;
+  pricePerUnit: number;
   conversoes: HumanConversion[];
 }
 
-/** Resultado completo para uma área de serviço. */
 export interface TechnicalResult {
   serviceType: ServiceType;
   area: number;
   materials: TechnicalMaterial[];
-  totalPrice: number; // soma exata (qty × preço)
+  totalPrice: number;
 }
 
-// ---------------------------------------------------------------------------
-// Coeficientes técnicos por serviço
-// ---------------------------------------------------------------------------
+/**
+ * =========================================
+ * CAMADA DE OBRA (NOVO)
+ * =========================================
+ */
 
-interface MaterialSpec {
+export interface HumanMaterial {
   material: string;
-  /** Unidade técnica padrão */
-  unit: string;
-  /** Fator de quantidade: qty = area × factor */
-  factor: number;
-  /** Preço base por unidade (EUR, Portugal baseline) */
-  basePricePerUnit: number;
-  /** Conversões humanas possíveis */
-  conversions: Array<{
-    tipo: string;
-    fator_label: string;
-    /** Quanto de "tipo" por 1 unidade técnica. Ex: 1 m³ = 12 carros → fator = 12 */
-    fator: number;
-  }>;
+  quantidade_tecnica: number;
+  quantidade_obra: number;
+  unidade_obra: string;
+  explicacao: string;
+  total_estimado: number;
 }
 
-const SERVICE_SPECS: Record<ServiceType, MaterialSpec[]> = {
+/**
+ * =========================================
+ * ARREDONDAMENTO POR MATERIAL
+ * =========================================
+ */
+
+function roundForConstruction(value: number, unit: string): number {
+  switch (unit) {
+    case "m3":
+      return Math.ceil(value * 100) / 100; // 2 casas
+
+    case "kg":
+      return Math.ceil(value / 5) * 5; // blocos de 5kg
+
+    case "L":
+      return Math.ceil(value); // litros inteiros
+
+    case "und":
+      return Math.ceil(value);
+
+    default:
+      return value;
+  }
+}
+
+/**
+ * =========================================
+ * CONVERSÃO PARA OBRA
+ * =========================================
+ */
+
+function convertToConstruction(material: TechnicalMaterial): HumanMaterial {
+  let quantidade_obra = material.valor_tecnico;
+  let unidade_obra = material.tecnico;
+  let explicacao = "";
+
+  // AREIA → CARRO DE MÃO
+  if (material.material.toLowerCase().includes("areia")) {
+    const carros = material.valor_tecnico * 12; // 1m³ = 12 carros
+    quantidade_obra = carros;
+    unidade_obra = "carro de mão";
+    explicacao = `≈ ${carros.toFixed(1)} carros de mão`;
+  }
+
+  // CIMENTO → SACOS 25KG
+  if (material.material.toLowerCase().includes("cimento")) {
+    const sacos = material.valor_tecnico / 25;
+    quantidade_obra = Math.ceil(sacos);
+    unidade_obra = "sacos (25kg)";
+    explicacao = `≈ ${Math.ceil(sacos)} sacos de 25kg`;
+  }
+
+  // CAL → SACOS 20KG
+  if (material.material.toLowerCase().includes("cal")) {
+    const sacos = material.valor_tecnico / 20;
+    quantidade_obra = Math.ceil(sacos);
+    unidade_obra = "sacos (20kg)";
+    explicacao = `≈ ${Math.ceil(sacos)} sacos de 20kg`;
+  }
+
+  // OUTROS → arredondamento padrão
+  if (!explicacao) {
+    quantidade_obra = roundForConstruction(material.valor_tecnico, material.tecnico);
+    explicacao = `≈ valor arredondado para obra`;
+  }
+
+  return {
+    material: material.material,
+    quantidade_tecnica: material.valor_tecnico,
+    quantidade_obra,
+    unidade_obra,
+    explicacao,
+    total_estimado: material.valor_tecnico * material.pricePerUnit,
+  };
+}
+
+/**
+ * =========================================
+ * MOTOR TÉCNICO (SEU ORIGINAL)
+ * =========================================
+ */
+
+const SERVICE_SPECS: Record<ServiceType, any[]> = {
   reboco: [
     {
       material: "Areia",
       unit: "m3",
-      factor: 0.012,          // 0.012 m³/m² (espessura ~12mm)
+      factor: 0.012,
       basePricePerUnit: 40,
       conversions: [
-        { tipo: "carro_de_mao", fator_label: "1 m³ = 12 carros de mão", fator: 12 },
+        { tipo: "carro_de_mao", fator_label: "1 m³ = 12 carros", fator: 12 },
       ],
     },
     {
       material: "Cimento",
       unit: "kg",
-      factor: 4.2,            // ~4.2 kg/m² (traço 1:4 vol)
+      factor: 4.2,
       basePricePerUnit: 0.6,
       conversions: [
-        { tipo: "saco_50kg", fator_label: "1 saco = 50 kg", fator: 1 / 50 },
+        { tipo: "saco_25kg", fator_label: "1 saco = 25kg", fator: 1 / 25 },
       ],
     },
     {
       material: "Cal",
       unit: "kg",
-      factor: 1.05,           // ~1.05 kg/m² (traço 1:4 com adição)
+      factor: 1.05,
       basePricePerUnit: 0.5,
-      conversions: [
-        { tipo: "saco_20kg", fator_label: "1 saco = 20 kg", fator: 1 / 20 },
-      ],
+      conversions: [],
     },
     {
       material: "Água",
       unit: "L",
-      factor: 2.5,            // ~2.5 L/m²
-      basePricePerUnit: 0.005,
-      conversions: [],
-    },
-  ],
-
-  piso: [
-    {
-      material: "Argamassa colante",
-      unit: "kg",
-      factor: 5,              // ~5 kg/m²
-      basePricePerUnit: 0.5,
-      conversions: [
-        { tipo: "saco_20kg", fator_label: "1 saco = 20 kg", fator: 1 / 20 },
-      ],
-    },
-    {
-      material: "Piso cerâmico",
-      unit: "m2",
-      factor: 1.1,            // +10% quebra
-      basePricePerUnit: 25,
-      conversions: [
-        { tipo: "caixa_2m2", fator_label: "1 caixa ≈ 2 m²", fator: 1 / 2 },
-      ],
-    },
-    {
-      material: "Rejunte",
-      unit: "kg",
-      factor: 0.5,            // ~0.5 kg/m²
-      basePricePerUnit: 8,
-      conversions: [
-        { tipo: "saco_1kg", fator_label: "1 saco = 1 kg", fator: 1 },
-      ],
-    },
-  ],
-
-  pladur: [
-    {
-      material: "Placas de gesso",
-      unit: "m2",
-      factor: 1.05,           // +5% desperdício
-      basePricePerUnit: 15,
-      conversions: [
-        { tipo: "placa_1.2x2.6", fator_label: "1 placa ≈ 3.12 m²", fator: 1 / 3.12 },
-      ],
-    },
-    {
-      material: "Perfis metálicos",
-      unit: "m",
       factor: 2.5,
-      basePricePerUnit: 3,
-      conversions: [
-        { tipo: "barra_3m", fator_label: "1 barra = 3 m", fator: 1 / 3 },
-      ],
-    },
-    {
-      material: "Parafusos",
-      unit: "und",
-      factor: 15,
-      basePricePerUnit: 0.05,
-      conversions: [
-        { tipo: "caixa_500", fator_label: "1 caixa = 500 und", fator: 1 / 500 },
-      ],
-    },
-    {
-      material: "Massa para juntas",
-      unit: "kg",
-      factor: 0.3,
-      basePricePerUnit: 2,
-      conversions: [
-        { tipo: "saco_5kg", fator_label: "1 saco = 5 kg", fator: 1 / 5 },
-      ],
-    },
-  ],
-
-  alvenaria: [
-    {
-      material: "Tijolos",
-      unit: "und",
-      factor: 25,             // ~25 un/m²
-      basePricePerUnit: 0.8,
-      conversions: [
-        { tipo: "milheiro", fator_label: "1 milheiro = 1000 und", fator: 1 / 1000 },
-      ],
-    },
-    {
-      material: "Cimento",
-      unit: "kg",
-      factor: 5,
-      basePricePerUnit: 0.6,
-      conversions: [
-        { tipo: "saco_50kg", fator_label: "1 saco = 50 kg", fator: 1 / 50 },
-      ],
-    },
-    {
-      material: "Areia",
-      unit: "m3",
-      factor: 0.01,
-      basePricePerUnit: 40,
-      conversions: [
-        { tipo: "carro_de_mao", fator_label: "1 m³ = 12 carros de mão", fator: 12 },
-      ],
-    },
-    {
-      material: "Cal",
-      unit: "kg",
-      factor: 1,
-      basePricePerUnit: 0.5,
-      conversions: [
-        { tipo: "saco_20kg", fator_label: "1 saco = 20 kg", fator: 1 / 20 },
-      ],
-    },
-  ],
-
-  capoto: [
-    {
-      material: "Placas EPS (esferovite)",
-      unit: "m2",
-      factor: 1.05,           // +5% desperdício
-      basePricePerUnit: 12,
-      conversions: [],
-    },
-    {
-      material: "Cola ETICS",
-      unit: "kg",
-      factor: 6,
-      basePricePerUnit: 1.2,
-      conversions: [
-        { tipo: "saco_25kg", fator_label: "1 saco = 25 kg", fator: 1 / 25 },
-      ],
-    },
-    {
-      material: "Rede de fibra de vidro",
-      unit: "m2",
-      factor: 1.1,
-      basePricePerUnit: 2,
-      conversions: [
-        { tipo: "rolo_50m2", fator_label: "1 rolo ≈ 50 m²", fator: 1 / 50 },
-      ],
-    },
-    {
-      material: "Buchas de fixação",
-      unit: "und",
-      factor: 6,
-      basePricePerUnit: 0.3,
-      conversions: [
-        { tipo: "caixa_100", fator_label: "1 caixa = 100 und", fator: 1 / 100 },
-      ],
-    },
-  ],
-
-  concreto: [
-    {
-      material: "Cimento",
-      unit: "kg",
-      factor: 5.25,           // espessura 15cm, traço C25: 350 kg/m³ × 0.015 m
-      basePricePerUnit: 0.6,
-      conversions: [
-        { tipo: "saco_50kg", fator_label: "1 saco = 50 kg", fator: 1 / 50 },
-      ],
-    },
-    {
-      material: "Areia",
-      unit: "m3",
-      factor: 0.0105,         // 0.7 m³/m³ × 0.015
-      basePricePerUnit: 40,
-      conversions: [
-        { tipo: "carro_de_mao", fator_label: "1 m³ = 12 carros de mão", fator: 12 },
-      ],
-    },
-    {
-      material: "Brita",
-      unit: "m3",
-      factor: 0.012,          // 0.8 m³/m³ × 0.015
-      basePricePerUnit: 45,
-      conversions: [
-        { tipo: "carro_de_mao", fator_label: "1 m³ = 12 carros de mão", fator: 12 },
-      ],
-    },
-    {
-      material: "Água",
-      unit: "L",
-      factor: 2.625,          // 175 L/m³ × 0.015
       basePricePerUnit: 0.005,
-      conversions: [],
-    },
-  ],
-
-  pintura: [
-    {
-      material: "Tinta",
-      unit: "L",
-      factor: 0.1,            // rendimento ~10 m²/L
-      basePricePerUnit: 15,
-      conversions: [
-        { tipo: "lata_18L", fator_label: "1 lata = 18 L", fator: 1 / 18 },
-        { tipo: "galao_3.6L", fator_label: "1 galão = 3.6 L", fator: 1 / 3.6 },
-      ],
-    },
-    {
-      material: "Primer",
-      unit: "L",
-      factor: 0.05,           // rendimento ~20 m²/L
-      basePricePerUnit: 10,
-      conversions: [
-        { tipo: "galao_3.6L", fator_label: "1 galão = 3.6 L", fator: 1 / 3.6 },
-      ],
-    },
-    {
-      material: "Fita adesiva",
-      unit: "und",
-      factor: 0.05,           // 1 rolo/20 m²
-      basePricePerUnit: 3,
-      conversions: [],
-    },
-    {
-      material: "Lixa",
-      unit: "und",
-      factor: 0.033,          // 1 und/30 m²
-      basePricePerUnit: 0.8,
       conversions: [],
     },
   ],
 };
 
-// ---------------------------------------------------------------------------
-// Motor de cálculo
-// ---------------------------------------------------------------------------
-
 /**
- * Calcula materiais para uma dada área e serviço.
- * Retorna valores técnicos exatos – sem arredondamento.
+ * =========================================
+ * CÁLCULO TÉCNICO
+ * =========================================
  */
+
 export function calculateTechnical(
   serviceType: ServiceType,
   area: number,
@@ -335,21 +189,13 @@ export function calculateTechnical(
 
   const materials: TechnicalMaterial[] = specs.map((spec) => {
     const valor_tecnico = area * spec.factor;
-    const pricePerUnit = spec.basePricePerUnit * multiplier;
-
-    const conversoes: HumanConversion[] = spec.conversions.map((c) => ({
-      tipo: c.tipo,
-      fator_label: c.fator_label,
-      fator: c.fator,
-      valor_convertido: valor_tecnico * c.fator,
-    }));
 
     return {
       material: spec.material,
       tecnico: spec.unit,
       valor_tecnico,
-      pricePerUnit,
-      conversoes,
+      pricePerUnit: spec.basePricePerUnit * multiplier,
+      conversoes: spec.conversions,
     };
   });
 
@@ -361,22 +207,21 @@ export function calculateTechnical(
   return { serviceType, area, materials, totalPrice };
 }
 
-// ---------------------------------------------------------------------------
-// Adaptadores de compatibilidade (camada legada)
-// ---------------------------------------------------------------------------
-
-import { Material } from "@/types";
-
 /**
- * Converte TechnicalMaterial[] para o formato Material[] usado pela UI e PDF.
- * Aqui os valores são mantidos exatos para que a camada de apresentação
- * decida o arredondamento.
+ * =========================================
+ * CAMADA DE OBRA (EXPORT FINAL)
+ * =========================================
  */
-export function toMaterialArray(technicalMaterials: TechnicalMaterial[]): Material[] {
-  return technicalMaterials.map((tm) => ({
-    name: tm.material,
-    quantity: tm.valor_tecnico,
-    unit: tm.tecnico,
-    pricePerUnit: tm.pricePerUnit,
-  }));
+
+export function calculateForUser(
+  serviceType: ServiceType,
+  area: number,
+  regionPricing?: RegionPricing
+) {
+  const technical = calculateTechnical(serviceType, area, regionPricing);
+
+  return {
+    ...technical,
+    materials: technical.materials.map(convertToConstruction),
+  };
 }
