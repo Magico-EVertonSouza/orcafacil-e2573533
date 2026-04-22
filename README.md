@@ -1,73 +1,108 @@
-# Welcome to your Lovable project
+# 🚀 OrçaFácil
 
-## Project info
+**Uma ferramenta inteligente para simplificar orçamentos de materiais na construção e renovação de imóveis.**
 
-**URL**: https://lovable.dev/projects/bcd23cec-ddb4-4e02-a807-5cfe61c2e9eb
+---
 
-## How can I edit this code?
+## 💡 Visão do produto
 
-There are several ways of editing your application.
+O **OrçaFácil** foi criado para resolver um problema real e recorrente:
 
-**Use Lovable**
+> A dificuldade em calcular corretamente a quantidade de materiais necessários para uma obra ou reforma.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/bcd23cec-ddb4-4e02-a807-5cfe61c2e9eb) and start prompting.
+Muitas pessoas — desde clientes até profissionais da construção — enfrentam erros de cálculo, desperdício de materiais e falta de clareza no planeamento financeiro de projetos.
 
-Changes made via Lovable will be committed automatically to this repo.
+O OrçaFácil nasce para eliminar essa barreira, tornando o processo de orçamento simples, rápido e compreensível para qualquer pessoa.
 
-**Use your preferred IDE**
+---
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🧠 Problema que resolvemos
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Atualmente, o mercado enfrenta:
 
-Follow these steps:
+* ❌ Compras excessivas de materiais
+* ❌ Desperdício em obras
+* ❌ Falta de comunicação entre cliente e profissional
+* ❌ Dificuldade em estimar custos reais de uma obra
+* ❌ Planeamento financeiro pouco preciso
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+---
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## ⚙️ A solução OrçaFácil
 
-# Step 3: Install the necessary dependencies.
-npm i
+O OrçaFácil conecta dois mundos:
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+👷 Profissionais da construção
+🏠 Clientes sem conhecimento técnico
 
-**Edit a file directly in GitHub**
+E transforma isso numa linguagem simples e comum: **materiais e quantidades reais de obra**
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+---
 
-**Use GitHub Codespaces**
+## ✨ Funcionalidades
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+* Seleção de serviços de construção (reboco, piso, capoto, etc.)
+* Cálculo automático de materiais necessários
+* Organização de orçamento por etapas de obra
+* Interface simples e responsiva (mobile-first)
+* Geração de orçamento final em PDF
+* Experiência intuitiva para utilizadores técnicos e não técnicos
 
-## What technologies are used for this project?
+---
 
-This project is built with:
+## 🎯 Objetivo
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Criar uma ponte entre cliente e profissional, permitindo que ambos:
 
-## How can I deploy this project?
+* falem a mesma linguagem
+* tomem decisões mais informadas
+* reduzam desperdícios
+* economizem tempo e dinheiro
 
-Simply open [Lovable](https://lovable.dev/projects/bcd23cec-ddb4-4e02-a807-5cfe61c2e9eb) and click on Share -> Publish.
+---
 
-## Can I connect a custom domain to my Lovable project?
+## 🛠️ Tecnologias
 
-Yes, you can!
+* React
+* TypeScript
+* Vite
+* Tailwind CSS
+* shadcn/ui
+* Lovable (base de desenvolvimento)
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+---
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 📱 Experiência
+
+O OrçaFácil foi pensado para ser usado tanto no desktop quanto no mobile, permitindo que o utilizador faça orçamentos diretamente em obra ou em casa.
+
+---
+
+## 🚀 Status do projeto
+
+> Em desenvolvimento contínuo
+
+Este projeto está em evolução constante, com foco em melhorar precisão de cálculos, experiência do utilizador e expansão de funcionalidades.
+
+---
+
+## 🔥 Visão futura
+
+* Sistema de contas para profissionais
+* Base de preços médios por região
+* Histórico de orçamentos
+* Versão mobile app (PWA / nativo)
+* Integração com fornecedores de materiais
+
+---
+
+## 💬 Filosofia do projeto
+
+> Tornar o cálculo de materiais tão simples que qualquer pessoa consiga planear uma obra sem medo de errar.
+
+---
+
+## 👤 Autor
+
+Desenvolvido por **(Everton Souza**
+Focado em criar soluções práticas para problemas reais através da programação.
