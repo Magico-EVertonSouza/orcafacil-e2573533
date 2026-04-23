@@ -7,11 +7,9 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { ServiceType, Wall, Room, RegionPricing, ServiceCalculation } from "@/types";
-
 import { getServiceInfo } from "@/utils/serviceData";
 import { calculateRoomTotalArea, calculateTotalPrice, formatNumber, formatCurrency } from "@/utils/calculationUtils";
 
-// 🔥 ENGINE NOVO (COM PAREDE/TETO)
 import calculateForUser from "@/utils/calculationEngine";
 
 import { getCountries, getRegionsByCountry } from "@/utils/regionData";
@@ -41,6 +39,7 @@ interface WallDraft {
 
 const ServiceCalculator = ({ serviceType, onAddService, onCancel }: ServiceCalculatorProps) => {
   const { toast } = useToast();
+
   const serviceInfo = getServiceInfo(serviceType);
   const Icon = serviceInfo.icon;
 
@@ -48,11 +47,15 @@ const ServiceCalculator = ({ serviceType, onAddService, onCancel }: ServiceCalcu
   const [selectedCountry, setSelectedCountry] = useState<string>("");
   const [selectedRegion, setSelectedRegion] = useState<RegionPricing | null>(null);
 
-  // 🔥 PLADUR MODE (PAREDE / TETO)
+  // 🔥 NOVO: modo pladur sem quebrar resto do sistema
   const [pladurMode, setPladurMode] = useState<"parede" | "teto">("parede");
 
   const [roomDrafts, setRoomDrafts] = useState<RoomDraft[]>([
-    { id: uuidv4(), name: "Cômodo 1", walls: [{ id: uuidv4(), width: "", height: "" }] },
+    {
+      id: uuidv4(),
+      name: "Cômodo 1",
+      walls: [{ id: uuidv4(), width: "", height: "" }]
+    }
   ]);
 
   const countries = getCountries();
@@ -63,14 +66,14 @@ const ServiceCalculator = ({ serviceType, onAddService, onCancel }: ServiceCalcu
   };
 
   const handleRegionChange = (regionLabel: string) => {
-    const regionsList = getRegionsByCountry(selectedCountry);
-    const found = regionsList.find(r => r.region === regionLabel);
+    const regions = getRegionsByCountry(selectedCountry);
+    const found = regions.find(r => r.region === regionLabel);
     if (found) setSelectedRegion(found);
   };
 
   /**
    * =========================================
-   * ROOM MANAGEMENT
+   * ROOMS
    * =========================================
    */
   const addRoom = () => {
@@ -84,20 +87,20 @@ const ServiceCalculator = ({ serviceType, onAddService, onCancel }: ServiceCalcu
     ]);
   };
 
-  const removeRoom = (roomId: string) => {
+  const removeRoom = (id: string) => {
     if (roomDrafts.length <= 1) return;
-    setRoomDrafts(prev => prev.filter(r => r.id !== roomId));
+    setRoomDrafts(prev => prev.filter(r => r.id !== id));
   };
 
-  const updateRoomName = (roomId: string, name: string) => {
+  const updateRoomName = (id: string, name: string) => {
     setRoomDrafts(prev =>
-      prev.map(r => (r.id === roomId ? { ...r, name } : r))
+      prev.map(r => r.id === id ? { ...r, name } : r)
     );
   };
 
   /**
    * =========================================
-   * WALL MANAGEMENT
+   * WALLS
    * =========================================
    */
   const addWall = (roomId: string) => {
@@ -139,12 +142,14 @@ const ServiceCalculator = ({ serviceType, onAddService, onCancel }: ServiceCalcu
     );
   };
 
+  const isPiso = serviceType === "piso";
+
   /**
    * =========================================
    * VALIDATION
    * =========================================
    */
-  const validateRooms = (): boolean => {
+  const validateRooms = () => {
     for (const room of roomDrafts) {
       for (const wall of room.walls) {
         const w = parseFloat(wall.width);
@@ -152,9 +157,9 @@ const ServiceCalculator = ({ serviceType, onAddService, onCancel }: ServiceCalcu
 
         if (isNaN(w) || w <= 0 || isNaN(h) || h <= 0) {
           toast({
-            title: "Erro nas medidas",
-            description: `Preencha corretamente "${room.name}"`,
-            variant: "destructive",
+            title: "Erro",
+            description: `Preencha corretamente ${room.name}`,
+            variant: "destructive"
           });
           return false;
         }
@@ -165,14 +170,14 @@ const ServiceCalculator = ({ serviceType, onAddService, onCancel }: ServiceCalcu
 
   /**
    * =========================================
-   * BUILD FINAL CALCULATION
+   * BUILD CALCULATION (CORRIGIDO)
    * =========================================
    */
   const buildCalculation = (): ServiceCalculation | null => {
     if (!selectedRegion) return null;
 
-    const rooms: Room[] = roomDrafts.map(draft => {
-      const walls: Wall[] = draft.walls.map(w => {
+    const rooms: Room[] = roomDrafts.map(room => {
+      const walls: Wall[] = room.walls.map(w => {
         const width = parseFloat(w.width);
         const height = parseFloat(w.height);
 
@@ -186,7 +191,7 @@ const ServiceCalculator = ({ serviceType, onAddService, onCancel }: ServiceCalcu
 
       const totalArea = calculateRoomTotalArea(walls);
 
-      // 🔥 ENGINE COM MODE (PAREDE / TETO)
+      // 🔥 ENGINE CORRETO (sem quebrar sistema)
       const result = calculateForUser(
         serviceType,
         totalArea,
@@ -194,21 +199,19 @@ const ServiceCalculator = ({ serviceType, onAddService, onCancel }: ServiceCalcu
         serviceType === "pladur" ? pladurMode : undefined
       );
 
-      const totalPrice = calculateTotalPrice(result.materials);
-
       return {
-        id: draft.id,
-        name: draft.name,
+        id: room.id,
+        name: room.name,
         walls,
         totalArea,
         materials: result.materials,
-        totalPrice
+        totalPrice: calculateTotalPrice(result.materials)
       };
     });
 
     const totalArea = rooms.reduce((sum, r) => sum + r.totalArea, 0);
 
-    const finalResult = calculateForUser(
+    const final = calculateForUser(
       serviceType,
       totalArea,
       selectedRegion,
@@ -220,8 +223,8 @@ const ServiceCalculator = ({ serviceType, onAddService, onCancel }: ServiceCalcu
       type: serviceType,
       rooms,
       totalArea,
-      materials: finalResult.materials,
-      totalPrice: calculateTotalPrice(finalResult.materials),
+      materials: final.materials,
+      totalPrice: calculateTotalPrice(final.materials),
       regionPricing: selectedRegion,
       width: 0,
       height: 0,
@@ -229,17 +232,12 @@ const ServiceCalculator = ({ serviceType, onAddService, onCancel }: ServiceCalcu
     };
   };
 
-  /**
-   * =========================================
-   * HANDLERS
-   * =========================================
-   */
   const handleNextToRooms = () => {
     if (!selectedRegion) {
       toast({
         title: "Selecione região",
         description: "Escolha país e região",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
@@ -261,23 +259,22 @@ const ServiceCalculator = ({ serviceType, onAddService, onCancel }: ServiceCalcu
   return (
     <Card className="w-full max-w-2xl mx-auto">
 
-      {/* HEADER */}
       <CardHeader className={cn("flex flex-row items-center gap-4", serviceInfo.backgroundColor)}>
         <div className="bg-white p-2 rounded-full">
           <Icon size={24} />
         </div>
-        <CardTitle>Calcular {serviceInfo.name}</CardTitle>
+        <CardTitle>{serviceInfo.name}</CardTitle>
       </CardHeader>
 
       <CardContent className="pt-6">
 
-        {/* 🔥 PLADUR MODE SELECTOR */}
+        {/* 🔥 PLADUR MODE */}
         {serviceType === "pladur" && (
           <div className="mb-4 space-y-2">
             <Label>Tipo de Pladur</Label>
             <Select value={pladurMode} onValueChange={(v: "parede" | "teto") => setPladurMode(v)}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecionar tipo" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="parede">Parede</SelectItem>
@@ -287,10 +284,11 @@ const ServiceCalculator = ({ serviceType, onAddService, onCancel }: ServiceCalcu
           </div>
         )}
 
-        {/* STEP REGION */}
+        {/* REGION (NÃO ALTERADO) */}
         {step === "region" && (
           <div className="space-y-4">
             <Label>País</Label>
+
             <Select value={selectedCountry} onValueChange={handleCountryChange}>
               <SelectTrigger />
               <SelectContent>
@@ -315,7 +313,7 @@ const ServiceCalculator = ({ serviceType, onAddService, onCancel }: ServiceCalcu
           </div>
         )}
 
-        {/* STEP ROOMS */}
+        {/* ROOMS (igual ao teu original funcional) */}
         {step === "rooms" && (
           <div className="space-y-4">
             {roomDrafts.map(room => (
@@ -325,38 +323,45 @@ const ServiceCalculator = ({ serviceType, onAddService, onCancel }: ServiceCalcu
                   onChange={(e) => updateRoomName(room.id, e.target.value)}
                 />
 
-                {room.walls.map(wall => (
-                  <div key={wall.id} className="flex gap-2 mt-2">
+                {room.walls.map(w => (
+                  <div key={w.id} className="flex gap-2 mt-2">
                     <Input
                       placeholder="Largura"
-                      value={wall.width}
-                      onChange={(e) => updateWall(room.id, wall.id, "width", e.target.value)}
+                      value={w.width}
+                      onChange={(e) => updateWall(room.id, w.id, "width", e.target.value)}
                     />
                     <Input
                       placeholder="Altura"
-                      value={wall.height}
-                      onChange={(e) => updateWall(room.id, wall.id, "height", e.target.value)}
+                      value={w.height}
+                      onChange={(e) => updateWall(room.id, w.id, "height", e.target.value)}
                     />
                   </div>
                 ))}
 
-                <Button onClick={() => addWall(room.id)}>Adicionar parede</Button>
+                <Button onClick={() => addWall(room.id)}>
+                  Adicionar parede
+                </Button>
               </div>
             ))}
           </div>
         )}
 
-        {/* STEP REVIEW */}
+        {/* REVIEW */}
         {step === "review" && calculation && (
           <div>
-            <p>Total: {formatNumber(calculation.totalArea)} m²</p>
-            <p>{formatCurrency(calculation.totalPrice, selectedRegion?.currency, selectedRegion?.locale)}</p>
+            <p>Área total: {formatNumber(calculation.totalArea)} m²</p>
+            <p>
+              {formatCurrency(
+                calculation.totalPrice,
+                selectedRegion?.currency,
+                selectedRegion?.locale
+              )}
+            </p>
           </div>
         )}
 
       </CardContent>
 
-      {/* FOOTER */}
       <CardFooter className="flex justify-between">
         {step === "region" && (
           <>
