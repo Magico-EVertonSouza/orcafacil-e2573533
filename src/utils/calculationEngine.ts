@@ -22,13 +22,13 @@ export interface TechnicalResult {
 
 /**
  * =========================================
- * MOTOR PROFISSIONAL (AGORA COMPLETO)
+ * MOTOR BASE (TODOS SERVIÇOS)
  * =========================================
  */
 
 const SERVICE_SPECS: Record<ServiceType, any[]> = {
   /**
-   * REBOCO (já estava bom)
+   * REBOCO
    */
   reboco: [
     { material: "Areia", unit: "m3", factor: 0.012, basePricePerUnit: 40 },
@@ -38,7 +38,7 @@ const SERVICE_SPECS: Record<ServiceType, any[]> = {
   ],
 
   /**
-   * 🔥 PISO (AGORA COMPLETO)
+   * PISO COMPLETO
    */
   piso: [
     { material: "Argamassa", unit: "kg", factor: 5, basePricePerUnit: 0.5 },
@@ -48,17 +48,12 @@ const SERVICE_SPECS: Record<ServiceType, any[]> = {
   ],
 
   /**
-   * 🔥 PLADUR COMPLETO
+   * 🔥 PLADUR (CONTROLADO VIA MODE)
    */
-  pladur: [
-    { material: "Placa de gesso", unit: "m2", factor: 1.05, basePricePerUnit: 15 },
-    { material: "Perfil metálico", unit: "m", factor: 2.5, basePricePerUnit: 3 },
-    { material: "Parafusos", unit: "und", factor: 15, basePricePerUnit: 0.05 },
-    { material: "Massa para juntas", unit: "kg", factor: 0.3, basePricePerUnit: 2 },
-  ],
+  pladur: [],
 
   /**
-   * 🔥 ALVENARIA COMPLETA
+   * ALVENARIA COMPLETA
    */
   alvenaria: [
     { material: "Tijolo", unit: "und", factor: 25, basePricePerUnit: 0.8 },
@@ -68,7 +63,7 @@ const SERVICE_SPECS: Record<ServiceType, any[]> = {
   ],
 
   /**
-   * 🔥 CAPOTO PROFISSIONAL
+   * CAPOTO COMPLETO
    */
   capoto: [
     { material: "EPS", unit: "m2", factor: 1.05, basePricePerUnit: 12 },
@@ -78,8 +73,7 @@ const SERVICE_SPECS: Record<ServiceType, any[]> = {
   ],
 
   /**
-   * 🔥 CONCRETO (AGORA COMO BETÃO POR M²)
-   * Considerando 10cm de espessura
+   * CONCRETO (BETÃO POR M²)
    */
   concreto: [
     { material: "Cimento", unit: "kg", factor: 3.5, basePricePerUnit: 0.6 },
@@ -89,7 +83,7 @@ const SERVICE_SPECS: Record<ServiceType, any[]> = {
   ],
 
   /**
-   * 🔥 PINTURA COMPLETA
+   * PINTURA COMPLETA
    */
   pintura: [
     { material: "Tinta", unit: "L", factor: 0.1, basePricePerUnit: 15 },
@@ -102,18 +96,52 @@ const SERVICE_SPECS: Record<ServiceType, any[]> = {
 
 /**
  * =========================================
- * CÁLCULO TÉCNICO (BASE)
+ * 🔥 CÁLCULO PRINCIPAL (COM PLADUR INTELIGENTE)
  * =========================================
  */
+
 export function calculateTechnical(
   serviceType: ServiceType,
   area: number,
-  regionPricing?: RegionPricing
+  regionPricing?: RegionPricing,
+  mode?: "parede" | "teto" // 👈 NOVO
 ): TechnicalResult {
-  const specs = SERVICE_SPECS[serviceType] ?? [];
   const multiplier = regionPricing?.priceMultiplier ?? 1;
 
-  const materials = specs.map((spec) => {
+  let specs: any[] = [];
+
+  /**
+   * =========================================
+   * 🔥 PLADUR DIFERENCIADO
+   * =========================================
+   */
+  if (serviceType === "pladur") {
+    if (mode === "teto") {
+      specs = [
+        { material: "Placa de gesso", unit: "m2", factor: 1.05, basePricePerUnit: 15 },
+        { material: "Perfil F530", unit: "m", factor: 3.5, basePricePerUnit: 3.5 },
+        { material: "Pendural", unit: "und", factor: 1.5, basePricePerUnit: 0.8 },
+        { material: "Parafusos", unit: "und", factor: 20, basePricePerUnit: 0.05 },
+        { material: "Massa para juntas", unit: "kg", factor: 0.4, basePricePerUnit: 2 },
+      ];
+    } else {
+      specs = [
+        { material: "Placa de gesso", unit: "m2", factor: 1.05, basePricePerUnit: 15 },
+        { material: "Perfil metálico", unit: "m", factor: 2.5, basePricePerUnit: 3 },
+        { material: "Parafusos", unit: "und", factor: 15, basePricePerUnit: 0.05 },
+        { material: "Massa para juntas", unit: "kg", factor: 0.3, basePricePerUnit: 2 },
+      ];
+    }
+  } else {
+    specs = SERVICE_SPECS[serviceType] ?? [];
+  }
+
+  /**
+   * =========================================
+   * CÁLCULO
+   * =========================================
+   */
+  const materials: TechnicalMaterial[] = specs.map((spec) => {
     const valor = area * spec.factor;
 
     return {
@@ -139,7 +167,7 @@ export function calculateTechnical(
 
 /**
  * =========================================
- * 🔥 CAMADA OBRA (ARREDONDAMENTO INTELIGENTE)
+ * 🔥 ARREDONDAMENTO DE OBRA
  * =========================================
  */
 function roundForConstruction(value: number, unit: string): number {
@@ -163,15 +191,16 @@ function roundForConstruction(value: number, unit: string): number {
 
 /**
  * =========================================
- * EXPORT PRINCIPAL (O QUE A UI USA)
+ * 🔥 EXPORT PRINCIPAL (USADO NA UI)
  * =========================================
  */
 export function calculateForUser(
   serviceType: ServiceType,
   area: number,
-  regionPricing?: RegionPricing
+  regionPricing?: RegionPricing,
+  mode?: "parede" | "teto"
 ) {
-  const technical = calculateTechnical(serviceType, area, regionPricing);
+  const technical = calculateTechnical(serviceType, area, regionPricing, mode);
 
   return {
     ...technical,
